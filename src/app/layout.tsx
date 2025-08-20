@@ -5,6 +5,7 @@ import Footer from './components/Footer'
 import Navbar from './components/Navbar'
 import { Toast } from './components/Toast'
 import './globals.css'
+import CartDrawer from './components/CartDrawer'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
@@ -108,6 +109,7 @@ export default function RootLayout({
         <main className="flex-1">
           {children}
         </main>
+        <CartDrawer />
         <Footer />
         <Toast />
       </body>

@@ -1,103 +1,240 @@
-import Image from "next/image";
 
-export default function Home() {
+import { Clock, MapPin, Phone, Star } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import Hero from './components/Hero'
+import ProductCard from './components/ProductCard'
+import Section from './components/Section'
+import { getMenu } from './lib/menu'
+
+export default async function HomePage() {
+  const menu = await getMenu()
+  const destaques = menu.filter(item => item.badges?.includes('Chef')).slice(0, 6)
+
+  const depoimentos = [
+    {
+      nome: "Maria Silva",
+      texto: "Uma experiência gastronômica única! O rigatoni ao ragu de cupim estava perfeito.",
+      rating: 5
+    },
+    {
+      nome: "João Santos",
+      texto: "Ambiente aconchegante e pratos incríveis. O atendimento é impecável!",
+      rating: 5
+    },
+    {
+      nome: "Ana Costa",
+      texto: "O melhor bistrô da cidade! Sempre volto para experimentar as novidades do chef.",
+      rating: 5
+    }
+  ]
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <>
+      <Hero />
+      
+      {/* Destaques do Chef */}
+      <Section className="bg-white">
+        <div className="container-custom">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-ink mb-4">
+              Destaques do Chef
+            </h2>
+            <p className="text-lg text-ink/70 max-w-2xl mx-auto">
+              Pratos especiais criados com ingredientes selecionados e técnicas refinadas
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {destaques.map((produto, index) => (
+              <div key={produto.id} className={`animate-fade-in animation-delay-${index * 200}`}>
+                <ProductCard produto={produto} />
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/cardapio" className="btn-primary">
+              Ver Cardápio Completo
+            </Link>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+      </Section>
+
+      {/* Experiência Quim */}
+      <Section className="bg-base">
+        <div className="container-custom">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <h2 className="text-3xl lg:text-4xl font-bold text-ink">
+                Experiência Quim
+              </h2>
+              <p className="text-lg text-ink/80 leading-relaxed">
+                No Quim Bistrô, cada prato conta uma história. Nossa cozinha autoral celebra 
+                os sabores brasileiros com técnicas contemporâneas, criando experiências 
+                gastronômicas únicas que despertam todos os sentidos.
+              </p>
+              <p className="text-lg text-ink/80 leading-relaxed">
+                Nosso chef trabalha exclusivamente com ingredientes de temporada, 
+                garantindo frescor e qualidade em cada criação. O ambiente acolhedor 
+                e o atendimento personalizado completam uma experiência inesquecível.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="relative h-48 rounded-2xl overflow-hidden">
+                  <Image
+                    src="https://picsum.photos/600/400?random=1"
+                    alt="Interior aconchegante do Quim Bistrô"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="relative h-32 rounded-2xl overflow-hidden">
+                  <Image
+                    src="https://picsum.photos/600/400?random=1"
+                    alt="Chef preparando prato especial"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+              <div className="pt-8">
+                <div className="relative h-64 rounded-2xl overflow-hidden">
+                  <Image
+                    src="https://picsum.photos/600/400?random=1"
+                    alt="Prato especial do chef"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Depoimentos */}
+      <Section className="bg-white">
+        <div className="container-custom">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-ink mb-4">
+              O que dizem nossos clientes
+            </h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {depoimentos.map((depoimento, index) => (
+              <div 
+                key={index}
+                className={`card animate-slide-up animation-delay-${index * 200}`}
+              >
+                <div className="flex items-center mb-4">
+                  {Array.from({ length: depoimento.rating }).map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  ))}
+                </div>
+                <blockquote className="text-ink/80 mb-4 italic">
+                  {depoimento.texto}
+                </blockquote>
+                <cite className="text-ink font-medium not-italic">
+                  — {depoimento.nome}
+                </cite>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* Reservas */}
+      <Section className="bg-base">
+        <div className="container-custom">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-ink mb-6">
+                Reserve sua mesa
+              </h2>
+              <p className="text-lg text-ink/80 mb-8 leading-relaxed">
+                Garante seu lugar em nossa mesa e desfrute de uma experiência 
+                gastronômica única. Recomendamos reserva prévia, especialmente 
+                aos fins de semana.
+              </p>
+              <Link href="/reservas" className="btn-primary">
+                Fazer Reserva
+              </Link>
+            </div>
+            
+            <div className="relative h-96 rounded-2xl overflow-hidden">
+              <Image
+                src="https://picsum.photos/600/400?random=1"
+                alt="Mesa preparada para jantar romântico"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Localização e Horários */}
+      <Section className="bg-white">
+        <div className="container-custom">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div>
+              <h2 className="text-3xl font-bold text-ink mb-8">
+                Visite-nos
+              </h2>
+              
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <MapPin className="w-6 h-6 text-ink mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-ink mb-1">Endereço</h3>
+                    <p className="text-ink/70">
+                      Rua dos Pinheiros, 123<br />
+                      Pinheiros, São Paulo - SP<br />
+                      CEP: 05422-001
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <Clock className="w-6 h-6 text-ink mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-ink mb-1">Horário de Funcionamento</h3>
+                    <div className="text-ink/70 space-y-1">
+                      <p>Segunda: Fechado</p>
+                      <p>Terça a Domingo: 18h00 - 00h00</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <Phone className="w-6 h-6 text-ink mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-ink mb-1">Contato</h3>
+                    <p className="text-ink/70">(11) 3456-7890</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="h-96 rounded-2xl overflow-hidden">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.2!2d-46.6911!3d-23.5629!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDMzJzQ2LjQiUyA0NsKwNDEnMjgiVw!5e0!3m2!1spt-BR!2sbr!4v1"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Localização do Quim Bistrô"
+              />
+            </div>
+          </div>
+        </div>
+      </Section>
+    </>
+  )
 }

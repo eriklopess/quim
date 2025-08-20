@@ -1,134 +1,152 @@
-'use client'
+"use client";
 
+import { Eye, Plus } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import { formatCurrency } from "../lib/currency";
+import { useCart } from "../store/useCart";
+import { Produto } from "../types";
 
-import { Eye, Plus } from 'lucide-react'
-import Image from 'next/image'
-import { useState } from 'react'
-import { formatCurrency } from '../lib/currency'
-import { useCart } from '../store/useCart'
-import { Produto } from '../types'
-import Badge from './Badge'
-import ProductModal from './ProductModal'
+// DS
+import {
+  Card,
+  CardContent,
+  Heading,
+  Subheading,
+  Text,
+  Badge,
+  Button,
+} from "@/ui/design-system";
+import ProductModal from "./ProductModal";
 
 interface ProductCardProps {
-  produto: Produto
+  produto: Produto;
 }
 
 export default function ProductCard({ produto }: ProductCardProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const { addItem } = useCart()
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { addItem } = useCart();
 
   const handleQuickAdd = () => {
     if (produto.opcoes && produto.opcoes.length > 0) {
-      // Se tem opções, abrir modal
-      setIsModalOpen(true)
+      setIsModalOpen(true);
     } else {
-      // Adicionar diretamente ao carrinho
       addItem({
         produtoId: produto.id,
         nome: produto.nome,
         quantidade: 1,
         precoBase: produto.precoPromocional || produto.preco,
         imagem: produto.imagem,
-      })
+      });
     }
-  }
+  };
 
-  const precoFinal = produto.precoPromocional || produto.preco
+  const precoFinal = produto.precoPromocional || produto.preco;
+
+  // Mapeia badges para tons do DS (ajuste conforme sua taxonomia)
+  const mapBadgeTone = (b: string) =>
+    b.toLowerCase() === "chef"
+      ? "brand"
+      : b.toLowerCase() === "novo"
+      ? "success"
+      : b.toLowerCase() === "promo"
+      ? "warning"
+      : ("success" as const);
 
   return (
     <>
-      <div className="card group cursor-pointer transition-all duration-300 hover:scale-105">
-        {/* Image */}
-        <div className="relative h-48 mb-4 overflow-hidden rounded-xl">
+      <Card className="group overflow-hidden cursor-pointer transition-all duration-300 hover:translate-y-[-2px]">
+        <div className="relative h-48">
           <Image
             src={produto.imagem}
             alt={produto.nome}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-110"
+            className="object-cover transition-transform duration-500 "
             loading="lazy"
           />
-          
-          {/* Badges overlay */}
+
           {produto.badges && produto.badges.length > 0 && (
             <div className="absolute top-2 left-2 flex flex-wrap gap-1">
               {produto.badges.map((badge) => (
-                <Badge key={badge} variant={badge}>
+                <Badge key={badge} tone={mapBadgeTone(badge)}>
                   {badge}
                 </Badge>
               ))}
             </div>
           )}
 
-          {/* Action buttons overlay */}
-          <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/20 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <div className="flex space-x-2">
-              <button
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-300 group-hover:bg-black/25 group-hover:opacity-100">
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setIsModalOpen(true)}
-                className="btn-secondary bg-white/90 text-ink hover:bg-white"
                 aria-label={`Ver detalhes de ${produto.nome}`}
+                className="backdrop-blur bg-white/90 hover:bg-white text-[#14151A] border-white/60"
+                title="Ver detalhes"
               >
                 <Eye className="w-4 h-4" />
-              </button>
+              </Button>
+
               {produto.disponivelDelivery && (
-                <button
+                <Button
+                  size="sm"
                   onClick={handleQuickAdd}
-                  className="btn-primary bg-ink/90 text-base hover:bg-ink"
                   aria-label={`Adicionar ${produto.nome} ao carrinho`}
+                  title="Adicionar ao carrinho"
                 >
                   <Plus className="w-4 h-4" />
-                </button>
+                </Button>
               )}
             </div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="space-y-3">
-          <h3 className="font-serif text-xl font-semibold text-ink line-clamp-2">
+        <CardContent className="space-y-3 pt-4">
+          <Heading as="h3" className="text-xl leading-snug line-clamp-2">
             {produto.nome}
-          </h3>
-          
-          <p className="text-ink/70 text-sm line-clamp-3">
-            {produto.descricaoCurta}
-          </p>
+          </Heading>
 
-          {/* Price */}
+          {produto.descricaoCurta && (
+            <Subheading className="text-sm text-[#707585] line-clamp-3">
+              {produto.descricaoCurta}
+            </Subheading>
+          )}
+
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               {produto.precoPromocional ? (
                 <>
-                  <span className="text-lg font-bold text-green-600">
-                    {formatCurrency(produto.precoPromocional)}
-                  </span>
-                  <span className="text-sm text-ink/50 line-through">
+                  <Text className="text-lg font-semibold text-emerald-600 m-0">
+                    {formatCurrency(precoFinal)}
+                  </Text>
+                  <Text className="text-sm text-[#707585] line-through m-0">
                     {formatCurrency(produto.preco)}
-                  </span>
+                  </Text>
                 </>
               ) : (
-                <span className="text-lg font-bold text-ink">
+                <Text className="text-lg font-semibold m-0">
                   {formatCurrency(produto.preco)}
-                </span>
+                </Text>
               )}
             </div>
 
             {!produto.disponivelDelivery && (
-              <span className="text-xs text-ink/50 bg-ink/10 px-2 py-1 rounded">
+              <Badge tone="ink" className="text-xs py-1 px-2">
                 Apenas no local
-              </span>
+              </Badge>
             )}
           </div>
 
-          {/* Allergens */}
+          {/* Alérgenos */}
           {produto.alergenicos && produto.alergenicos.length > 0 && (
-            <p className="text-xs text-ink/50">
-              Contém: {produto.alergenicos.join(', ')}
-            </p>
+            <Text className="text-xs text-[#707585] m-0">
+              Contém: {produto.alergenicos.join(", ")}
+            </Text>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Modal */}
       {isModalOpen && (
         <ProductModal
           produto={produto}
@@ -137,5 +155,5 @@ export default function ProductCard({ produto }: ProductCardProps) {
         />
       )}
     </>
-  )
+  );
 }

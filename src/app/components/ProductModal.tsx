@@ -1,89 +1,109 @@
-'use client'
+"use client";
 
+import { X } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { formatCurrency } from "../lib/currency";
+import { useCart } from "../store/useCart";
+import { Produto } from "../types";
+import QuantitySelector from "./QuantitySelector";
 
-import { X } from 'lucide-react'
-import Image from 'next/image'
-import { useEffect, useState } from 'react'
-import { formatCurrency } from '../lib/currency'
-import { useCart } from '../store/useCart'
-import { Produto } from '../types'
-import Badge from './Badge'
-import QuantitySelector from './QuantitySelector'
+// Design System
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Badge,
+  Button,
+  Heading,
+  Subheading,
+  Text,
+  Label,
+  Textarea,
+  Divider,
+} from "@/ui/design-system";
 
 interface ProductModalProps {
-  produto: Produto
-  isOpen: boolean
-  onClose: () => void
+  produto: Produto;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function ProductModal({ produto, isOpen, onClose }: ProductModalProps) {
-  const [quantidade, setQuantidade] = useState(1)
-  const [opcoesSelecionadas, setOpcoesSelecionadas] = useState<Record<string, string[]>>({})
-  const [observacoes, setObservacoes] = useState('')
-  const [precoTotal, setPrecoTotal] = useState(produto.precoPromocional || produto.preco)
-  const { addItem } = useCart()
+export default function ProductModal({
+  produto,
+  isOpen,
+  onClose,
+}: ProductModalProps) {
+  const [quantidade, setQuantidade] = useState(1);
+  const [opcoesSelecionadas, setOpcoesSelecionadas] = useState<
+    Record<string, string[]>
+  >({});
+  const [observacoes, setObservacoes] = useState("");
+  const [precoTotal, setPrecoTotal] = useState(
+    produto.precoPromocional || produto.preco
+  );
+  const { addItem } = useCart();
 
   // Reset quando o modal abre
   useEffect(() => {
     if (isOpen) {
-      setQuantidade(1)
-      setOpcoesSelecionadas({})
-      setObservacoes('')
-      setPrecoTotal(produto.precoPromocional || produto.preco)
+      setQuantidade(1);
+      setOpcoesSelecionadas({});
+      setObservacoes("");
+      setPrecoTotal(produto.precoPromocional || produto.preco);
     }
-  }, [isOpen, produto])
+  }, [isOpen, produto]);
 
   // Calcular preço total quando opções ou quantidade mudam
   useEffect(() => {
-    let preco = produto.precoPromocional || produto.preco
-    
-    // Adicionar deltas das opções selecionadas
-    Object.values(opcoesSelecionadas).flat().forEach(opcaoLabel => {
-      produto.opcoes?.forEach(grupo => {
-        const opcao = grupo.itens.find(item => item.label === opcaoLabel)
-        if (opcao) {
-          preco += opcao.deltaPreco
-        }
-      })
-    })
-    
-    setPrecoTotal(preco * quantidade)
-  }, [opcoesSelecionadas, quantidade, produto])
+    let preco = produto.precoPromocional || produto.preco;
 
-  const handleOpcaoChange = (nomeGrupo: string, opcaoLabel: string, isMulti: boolean) => {
-    setOpcoesSelecionadas(prev => {
-      const newState = { ...prev }
-      
+    Object.values(opcoesSelecionadas)
+      .flat()
+      .forEach((opcaoLabel) => {
+        produto.opcoes?.forEach((grupo) => {
+          const opcao = grupo.itens.find((item) => item.label === opcaoLabel);
+          if (opcao) preco += opcao.deltaPreco;
+        });
+      });
+
+    setPrecoTotal(preco * quantidade);
+  }, [opcoesSelecionadas, quantidade, produto]);
+
+  const handleOpcaoChange = (
+    nomeGrupo: string,
+    opcaoLabel: string,
+    isMulti: boolean
+  ) => {
+    setOpcoesSelecionadas((prev) => {
+      const next = { ...prev };
       if (isMulti) {
-        // Multi-select: toggle
-        if (!newState[nomeGrupo]) {
-          newState[nomeGrupo] = []
-        }
-        
-        const currentOptions = newState[nomeGrupo]
-        if (currentOptions.includes(opcaoLabel)) {
-          newState[nomeGrupo] = currentOptions.filter(opt => opt !== opcaoLabel)
+        const list = new Set(next[nomeGrupo] ?? []);
+        if (list.has(opcaoLabel)) {
+          list.delete(opcaoLabel);
         } else {
-          newState[nomeGrupo] = [...currentOptions, opcaoLabel]
+          list.add(opcaoLabel);
         }
+        next[nomeGrupo] = Array.from(list);
       } else {
-        // Single-select: replace
-        newState[nomeGrupo] = [opcaoLabel]
+        next[nomeGrupo] = [opcaoLabel];
       }
-      
-      return newState
-    })
-  }
+      return next;
+    });
+  };
 
   const handleAddToCart = () => {
-    // Validar opções obrigatórias
-    const missingRequired = produto.opcoes?.filter(grupo => 
-      grupo.required && (!opcoesSelecionadas[grupo.nome] || opcoesSelecionadas[grupo.nome].length === 0)
-    )
+    const missingRequired = produto.opcoes?.filter(
+      (g) =>
+        g.required &&
+        (!opcoesSelecionadas[g.nome] || opcoesSelecionadas[g.nome].length === 0)
+    );
 
     if (missingRequired && missingRequired.length > 0) {
-      alert(`Por favor, selecione: ${missingRequired.map(g => g.nome).join(', ')}`)
-      return
+      alert(
+        `Por favor, selecione: ${missingRequired.map((g) => g.nome).join(", ")}`
+      );
+      return;
     }
 
     addItem({
@@ -91,131 +111,170 @@ export default function ProductModal({ produto, isOpen, onClose }: ProductModalP
       nome: produto.nome,
       quantidade,
       precoBase: produto.precoPromocional || produto.preco,
-      opcoesSelecionadas: Object.keys(opcoesSelecionadas).length > 0 ? opcoesSelecionadas : undefined,
+      opcoesSelecionadas:
+        Object.keys(opcoesSelecionadas).length > 0
+          ? opcoesSelecionadas
+          : undefined,
       observacoes: observacoes.trim() || undefined,
       imagem: produto.imagem,
-    })
+    });
 
-    onClose()
-  }
+    onClose();
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
+
+  // (Opcional) mapear badges para tons do DS
+  const mapBadgeTone = (b: string) =>
+    b.toLowerCase() === "chef"
+      ? "brand"
+      : b.toLowerCase() === "novo"
+      ? "success"
+      : b.toLowerCase() === "promo"
+      ? "warning"
+      : ("ink" as const);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-ink/50 transition-opacity"
+    <div
+      className="fixed z-50 min-h-screen flex items-center justify-center p-4"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div
+        className="fixed inset-0 bg-black/50"
         onClick={onClose}
+        aria-hidden="true"
       />
-      
-      {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl animate-slide-up">
-          {/* Header */}
-          <div className="relative">
-            <div className="relative h-64 rounded-t-2xl overflow-hidden">
-              <Image
-                src={produto.imagem}
-                alt={produto.nome}
-                fill
-                className="object-cover"
-              />
-              
-              {/* Close button */}
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 p-2 bg-white/90 text-ink rounded-full hover:bg-white transition-colors"
-                aria-label="Fechar modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
 
-              {/* Badges */}
-              {produto.badges && produto.badges.length > 0 && (
-                <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                  {produto.badges.map((badge) => (
-                    <Badge key={badge} variant={badge}>
-                      {badge}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
+      <div className="fixed inset-0 flex max-h-8/12 items-center justify-center p-4 m-auto">
+        <Card className="relative w-full max-w-2xl overflow-hidden p-0">
+          {/* Header visual com imagem */}
+          <div className="relative h-64">
+            <Image
+              src={produto.imagem}
+              alt={produto.nome}
+              fill
+              className="object-cover"
+              priority
+            />
+
+            {/* Botão fechar */}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onClose}
+              aria-label="Fechar modal"
+              className="absolute top-4 right-4 rounded-full bg-white/90 text-[#14151A] border-white/60 hover:bg-white"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+
+            {/* Badges */}
+            {produto.badges && produto.badges.length > 0 && (
+              <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                {produto.badges.map((badge) => (
+                  <Badge key={badge} tone={mapBadgeTone(badge)}>
+                    {badge}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Content */}
-          <div className="p-6">
-            {/* Title and description */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-serif font-bold text-ink mb-2">
-                {produto.nome}
-              </h2>
-              <p className="text-ink/70 mb-4">
+          {/* Conteúdo */}
+          <CardHeader className="px-6 pt-6 pb-2">
+            <Heading as="h2" className="text-2xl mb-1">
+              {produto.nome}
+            </Heading>
+            {(produto.descricao || produto.descricaoCurta) && (
+              <Subheading className="text-[#707585]">
                 {produto.descricao || produto.descricaoCurta}
-              </p>
-              
-              {/* Price */}
-              <div className="flex items-center space-x-2 mb-4">
+              </Subheading>
+            )}
+          </CardHeader>
+
+          <CardContent className="px-6 pb-6">
+            {/* Preço + alérgenos */}
+            <div className="mb-4">
+              <div className="flex items-center gap-3">
                 {produto.precoPromocional ? (
                   <>
-                    <span className="text-2xl font-bold text-green-600">
+                    <Text className="text-2xl font-semibold text-emerald-600 m-0">
                       {formatCurrency(produto.precoPromocional)}
-                    </span>
-                    <span className="text-lg text-ink/50 line-through">
+                    </Text>
+                    <Text className="text-lg text-[#707585] line-through m-0">
                       {formatCurrency(produto.preco)}
-                    </span>
+                    </Text>
                   </>
                 ) : (
-                  <span className="text-2xl font-bold text-ink">
+                  <Text className="text-2xl font-semibold m-0">
                     {formatCurrency(produto.preco)}
-                  </span>
+                  </Text>
                 )}
               </div>
 
-              {/* Allergens */}
               {produto.alergenicos && produto.alergenicos.length > 0 && (
-                <p className="text-sm text-ink/60 bg-yellow-50 p-3 rounded-lg">
-                  <strong>Contém alérgenos:</strong> {produto.alergenicos.join(', ')}
-                </p>
+                <Text className="text-sm text-[#7a6a16] bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2 mt-3">
+                  <strong>Contém alérgenos:</strong>{" "}
+                  {produto.alergenicos.join(", ")}
+                </Text>
               )}
             </div>
 
-            {/* Options */}
+            {/* Opções */}
             {produto.opcoes && produto.opcoes.length > 0 && (
               <div className="mb-6 space-y-4">
                 {produto.opcoes.map((grupo) => (
-                  <div key={grupo.nome} className="border border-ink/10 rounded-lg p-4">
-                    <h3 className="font-semibold text-ink mb-3">
+                  <div
+                    key={grupo.nome}
+                    className="border border-black/10 rounded-xl p-4"
+                  >
+                    <Text className="font-semibold text-[#14151A] mb-3">
                       {grupo.nome}
-                      {grupo.required && <span className="text-red-500 ml-1">*</span>}
-                    </h3>
+                      {grupo.required && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </Text>
                     <div className="space-y-2">
                       {grupo.itens.map((opcao) => {
-                        const isSelected = opcoesSelecionadas[grupo.nome]?.includes(opcao.label) || false
-                        
+                        const isSelected =
+                          opcoesSelecionadas[grupo.nome]?.includes(
+                            opcao.label
+                          ) || false;
+
                         return (
                           <label
                             key={opcao.label}
-                            className="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-base/50 transition-colors"
+                            className="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-black/[0.04] transition-colors"
                           >
                             <div className="flex items-center">
                               <input
-                                type={grupo.tipo === 'multi' ? 'checkbox' : 'radio'}
+                                type={
+                                  grupo.tipo === "multi" ? "checkbox" : "radio"
+                                }
                                 name={grupo.nome}
                                 checked={isSelected}
-                                onChange={() => handleOpcaoChange(grupo.nome, opcao.label, grupo.tipo === 'multi')}
-                                className="mr-3 text-ink focus:ring-ink"
+                                onChange={() =>
+                                  handleOpcaoChange(
+                                    grupo.nome,
+                                    opcao.label,
+                                    grupo.tipo === "multi"
+                                  )
+                                }
+                                className="mr-3 accent-[#14151A]"
                               />
-                              <span className="text-ink">{opcao.label}</span>
+                              <span className="text-[#14151A]">
+                                {opcao.label}
+                              </span>
                             </div>
                             {opcao.deltaPreco !== 0 && (
-                              <span className="text-sm text-ink/60">
-                                {opcao.deltaPreco > 0 ? '+' : ''}{formatCurrency(opcao.deltaPreco)}
+                              <span className="text-sm text-[#707585]">
+                                {opcao.deltaPreco > 0 ? "+" : ""}
+                                {formatCurrency(opcao.deltaPreco)}
                               </span>
                             )}
                           </label>
-                        )
+                        );
                       })}
                     </div>
                   </div>
@@ -225,23 +284,21 @@ export default function ProductModal({ produto, isOpen, onClose }: ProductModalP
 
             {/* Observações */}
             <div className="mb-6">
-              <label htmlFor="observacoes" className="block text-sm font-medium text-ink mb-2">
-                Observações (opcional)
-              </label>
-              <textarea
+              <Label htmlFor="observacoes">Observações (opcional)</Label>
+              <Textarea
                 id="observacoes"
                 value={observacoes}
                 onChange={(e) => setObservacoes(e.target.value)}
                 placeholder="Ex: sem cebola, ponto da carne, etc."
                 rows={3}
-                className="w-full px-3 py-2 border border-ink/20 rounded-lg focus:border-ink focus:ring-1 focus:ring-ink resize-none"
               />
             </div>
 
-            {/* Quantity and Add to Cart */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium text-ink">Quantidade:</span>
+            <Divider className="my-4" />
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <Text className="text-sm font-medium m-0">Quantidade:</Text>
                 <QuantitySelector
                   value={quantidade}
                   onChange={setQuantidade}
@@ -249,23 +306,36 @@ export default function ProductModal({ produto, isOpen, onClose }: ProductModalP
                   max={10}
                 />
               </div>
-              
-              <div className="text-right">
-                <div className="text-lg font-bold text-ink">
+
+              <div className="w-full sm:w-auto text-right">
+                <Text className="text-lg font-bold m-0">
                   Total: {formatCurrency(precoTotal)}
+                </Text>
+                <div className="mt-2 flex gap-2 justify-end">
+                  <Button variant="outline" onClick={onClose}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleAddToCart}
+                    disabled={!produto.disponivelDelivery}
+                    className="disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={
+                      produto.disponivelDelivery
+                        ? "Adicionar ao carrinho"
+                        : "Indisponível para delivery"
+                    }
+                    aria-disabled={!produto.disponivelDelivery}
+                  >
+                    {produto.disponivelDelivery
+                      ? "Adicionar ao Carrinho"
+                      : "Apenas no Local"}
+                  </Button>
                 </div>
-                <button
-                  onClick={handleAddToCart}
-                  disabled={!produto.disponivelDelivery}
-                  className="btn-primary mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {produto.disponivelDelivery ? 'Adicionar ao Carrinho' : 'Apenas no Local'}
-                </button>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
-  )
+  );
 }
